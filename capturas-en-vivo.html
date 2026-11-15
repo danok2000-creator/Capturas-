@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Capturas · Pesca, caza y setas</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f4f1ea;--card:#fff;--tx:#1f2a24;--mut:#6b756e;--ac:#2f6b4f;--bd:#e2ddd0;--pesca:#2a78b8;--caza:#a2562b;--setas:#7a5c8f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#151a17;--card:#1e2520;--tx:#e8ece8;--mut:#9aa59d;--ac:#6fc29a;--bd:#2c352f;--pesca:#5aaae6;--caza:#d98a5c;--setas:#b394c8}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:560px;margin:0 auto;padding:0 12px 80px}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 4px 8px}
+h1{font-size:22px;margin:0;letter-spacing:-.5px}
+button,input,select,textarea{font:inherit;color:inherit}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:20px;padding:8px 16px;font-weight:600;cursor:pointer}
+.ghost{background:none;border:1px solid var(--bd);color:var(--tx)}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 10px}
+.tab{flex:1;white-space:nowrap;border:1px solid var(--bd);background:var(--card);border-radius:20px;padding:8px 12px;cursor:pointer}
+.tab.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;margin-bottom:12px;overflow:hidden}
+.today{padding:12px 14px}
+.today h2{font-size:15px;margin:0 0 6px}
+.row{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--mut);margin-bottom:6px}
+.tip{font-size:14px;margin:6px 0 0;padding:8px 10px;border-left:3px solid var(--ac);background:var(--bg);border-radius:0 8px 8px 0}
+.strip{display:flex;gap:6px;align-items:flex-end;margin:10px 0 4px;min-height:60px}.strip div{flex:1;text-align:center;font-size:11px;color:var(--mut);display:flex;flex-direction:column;align-items:center;justify-content:flex-end}.strip i{display:block;width:100%;background:var(--ac);opacity:.55;border-radius:4px 4px 0 0}.strip b{color:var(--tx);font-weight:600}.wgw{overflow-x:auto;margin:6px 0}.wg{border-collapse:collapse;font-size:12px;width:100%;min-width:380px}.wg th,.wg td{padding:4px 5px;text-align:center;border:1px solid var(--card)}.wg td{min-width:38px;font-weight:600}.wg th{color:var(--mut);font-weight:500;background:var(--bg)}.wg tr>th:first-child{position:sticky;left:0;text-align:left;white-space:nowrap}.wg small{font-size:10px}
+.sp{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--bd);font-size:14px}.md{border:1px solid var(--bd);border-radius:10px;padding:6px 10px;font-size:13px}
+.sl{font-size:12px;color:var(--mut);margin-top:6px}
+.note{font-size:11px;color:var(--mut);margin-top:6px}
+.ph{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;font-size:90px;background:var(--bg)}
+.ph img{width:100%;height:100%;object-fit:cover}
+.meta{padding:10px 14px}
+.who{display:flex;align-items:center;gap:8px;padding:10px 14px;font-weight:600}
+.av{width:30px;height:30px;border-radius:50%;background:var(--ac);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px}
+.badge{font-size:11px;padding:2px 8px;border-radius:10px;color:#fff;margin-left:auto}
+.b-pesca{background:var(--pesca)}.b-caza{background:var(--caza)}.b-setas{background:var(--setas)}
+.like{background:none;border:0;font-size:18px;cursor:pointer;padding:0}
+dialog{border:0;border-radius:16px;padding:16px;width:min(92vw,420px);background:var(--card);color:var(--tx)}
+dialog::backdrop{background:#0008}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 3px}
+input,select,textarea{width:100%;padding:9px;border:1px solid var(--bd);border-radius:10px;background:var(--bg)}
+.acts{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><h1>🎣🦌🍄 Capturas</h1><button class="btn ghost" id="me">Mi perfil</button></header>
+<div class="tabs" id="tabs"></div>
+<div id="today"></div>
+<div id="feed"></div>
+</div>
+<div style="position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px))"><button class="btn" id="add" style="padding:14px 20px;box-shadow:0 4px 14px #0004">＋ Subir captura</button></div>
+
+<dialog id="dlg"><form method="dialog" id="f">
+<strong>Nueva captura</strong>
+<label>Categoría</label><select id="cat"><option value="pesca">🎣 Pesca</option><option value="caza">🦌 Caza</option><option value="setas">🍄 Setas</option></select>
+<label>Especie</label><input id="sp" placeholder="Lubina, corzo, boletus…" required>
+<label>Peso / cantidad</label><input id="kg" placeholder="5 kg">
+<label>Lugar</label><input id="pl" placeholder="Costa de Cantabria">
+<label>Foto</label><input id="ph" type="file" accept="image/*">
+<label>Comentario</label><textarea id="tx" rows="2"></textarea>
+<div class="acts"><button type="button" class="btn ghost" id="cx">Cancelar</button><button class="btn" id="ok">Publicar</button></div>
+</form></dialog>
+
+<dialog id='fd'></dialog><dialog id="pd"><strong>Tu perfil</strong>
+<label>Nombre de usuario</label><input id="un" placeholder="@tu_usuario"><div id="med"></div>
+<div class="acts"><button class="btn" id="sv">Guardar</button></div></dialog>
+
+<script>
+const CATS={todo:['Todo','🌍'],pesca:['Pesca','🎣'],caza:['Caza','🦌'],setas:['Setas','🍄']};
+const EMO={pesca:'🐟',caza:'🦌',setas:'🍄'};
+// Datos de ejemplo. En la versión real vendrían de APIs de meteorología, mareas y calendario cinegético.
+const COND={
+pesca:{t:'🌬️ Viento 28 km/h',a:'🌊 Oleaje 2,0 m',b:'🌙 Marea: bajamar 17:40',tip:'Con viento y oleaje el agua va turbia: buen día para lubina y sargo (más a lanzado desde roca). Mejor el amanecer y la subida de marea.'},
+caza:{t:'🌡️ 6 °C · máx 13 °C',a:'💨 Viento suave NO',b:'📅 Apertura corzo (según tu comunidad)',tip:'Con el descenso de temperaturas, el corzo tiende a subir a las zonas altas buscando hierba húmeda. Revisa la normativa de tu coto.'},
+setas:{t:'🌧️ Lluvia últimos 7 días: 34 mm',a:'🌡️ Suelo 11 °C',b:'🌙 Luna menguante',tip:'Humedad y temperaturas suaves: buenas condiciones para boletus y níscalos en pinar y robledal, 5–10 días después de la lluvia.'}};
+// Datos de ejemplo con la misma forma que devolvería una API real de tiempo y mareas.
+const DATA={
+pesca:{wind:28,gust:41,dir:'SO',wave:2.0,per:9,pres:1008,dpres:-4,tide:'Bajamar 17:40 · pleamar 23:52',coef:78,water:15.5,unit:'km/h',lab:'Viento por horas',hours:[['08h',18],['11h',22],['14h',28],['17h',31],['20h',24],['23h',16]]},
+caza:{temp:6,max:13,wind:9,dir:'NO',rain:0,hum:82,pres:1021,dpres:3,moon:'Menguante 28 %',unit:'°C',lab:'Temperatura por horas',hours:[['06h',4],['09h',8],['12h',13],['15h',12],['18h',9],['21h',6]]},
+setas:{rain7:34,soil:11,hum:88,tmin:5,moon:'Menguante 35 %',unit:'%',lab:'Humedad por horas',hours:[['06h',94],['09h',90],['12h',78],['15h',74],['18h',82],['21h',89]]}};
+const ZONES=[['Ribadeo',15,91,1.0],['Luarca',55,87,1.1],['Gijón',130,74,1.0],['Llanes',175,80,.8],['Santander',220,76,.9],['Bermeo',270,68,1.1],['Donostia',315,62,.9]];
+// [nombre, emoji, modalidades (c costa, b barco), oleaje ideal m, viento máx km/h, agua (0 clara, 1 turbia, 2 indiferente), temporada mes inicio-fin]. Valores orientativos por validar.
+const SPEC=[['Lubina','🐟','cb',[1,3.5],35,1,[1,12]],['Sargo','🐟','c',[.8,3],30,1,[4,11]],['Dorada','🐠','cb',[0,1.5],20,0,[5,11]],['Mubles / lisa','🐟','c',[0,1.5],25,0,[1,12]],['Jurel / chicharro','🐟','cb',[0,2],25,0,[5,11]],['Caballa','🐟','cb',[0,2],25,0,[4,10]],['Bonito del norte','🐟','b',[0,2],25,0,[6,10]],['Anchoa','🐟','b',[0,1.5],20,0,[3,6]],['Congrio','🐍','cb',[0,3],40,2,[1,12]],['Maragota','🐟','c',[.5,2.5],30,1,[4,10]],['Breca / pagel','🐟','cb',[0,1.5],25,0,[5,11]],['Besugo','🐟','b',[0,2],30,2,[10,3]],['Merluza','🐟','b',[0,2.5],35,2,[1,12]],['Rape','🐟','b',[0,2.5],35,2,[1,12]],['Pulpo','🐙','c',[0,1],20,0,[5,10]],['Calamar / chipirón','🦑','cb',[0,1.5],20,0,[9,3]],['Sepia','🦑','c',[0,1],20,0,[3,7]],['Rodaballo','🐟','b',[0,2],30,2,[1,12]],['Lenguado','🐟','c',[0,1.5],25,1,[1,12]],['Cabracho','🐟','b',[0,2.5],35,2,[1,12]],['Palometa','🐟','cb',[0,1.5],25,0,[6,10]],['Serviola','🐟','b',[0,2],25,0,[6,10]]];
+let ZI=4,MODE='all';
+const ZN=()=>({e:ZONES[ZI][3],n:ZONES[ZI][0]});
+function zd(){if(LIVE)return {...DATA.pesca,...LIVE.now};const d=DATA.pesca,e=ZN().e,f=.8+.2*e;return {...d,wave:+(d.wave*e).toFixed(1),wind:Math.round(d.wind*f),gust:Math.round(d.gust*f)}}
+function setZone(i){ZI=i;render();loadLive()}function setMode(m){MODE=m;render()}
+function zoneUI(){return `<div class="card today"><h2>📍 Tu zona: ${ZONES[ZI][0]}</h2><svg viewBox="0 0 330 110" style="width:100%"><polygon points="0,110 0,92 40,88 80,84 130,74 175,80 220,76 270,68 330,60 330,110" style="fill:var(--bd)"/>${ZONES.map(([n,x,y],i)=>`<g onclick="setZone(${i})" style="cursor:pointer"><circle cx="${x}" cy="${y}" r="15" fill="transparent"/><circle cx="${x}" cy="${y}" r="${i===ZI?8:6}" style="fill:${i===ZI?'var(--ac)':'var(--pesca)'}"/><text x="${x}" y="${y-12}" font-size="9" text-anchor="middle" fill="currentColor">${n}</text></g>`).join('')}</svg><div class="note">${LSTAT}. Mapa esquemático del Cantábrico, de oeste a este. Toca un punto para cambiar de zona.</div></div>`}
+function specUI(){const d=zd(),m=new Date().getMonth()+1,tb=d.wave>=1.5||d.wind>=25?1:0;
+const L=SPEC.filter(s=>MODE==='all'||s[2].includes(MODE==='costa'?'c':'b')).map(s=>{let sc=5,w=[];const[a,b]=s[6],ok=a<=b?m>=a&&m<=b:m>=a||m<=b;
+if(!ok){sc=0;w.push('fuera de temporada')}else{if(d.wave<s[3][0]||d.wave>s[3][1]){sc-=2;w.push('oleaje fuera de rango')}if(d.wind>s[4]){sc--;w.push('viento alto')}if(s[5]!==2&&s[5]!==tb){sc--;w.push('agua '+(tb?'turbia':'clara')+' poco ideal')}if(MODE==='barco'&&d.wave>2.5){sc-=2;w.push('mar peligroso para salir')}}
+return [s,Math.max(0,sc),w]}).sort((x,y)=>y[1]-x[1]);
+return `<div class="card today"><h2>🐟 Qué pescar hoy en ${ZONES[ZI][0]}</h2><div class="tabs">${[['all','Todas'],['costa','Costa'],['barco','Barco']].map(([k,n])=>`<button class="tab ${MODE===k?'on':''}" onclick="setMode('${k}')">${n}</button>`).join('')}</div><div style="max-height:340px;overflow:auto">${L.map(([s,sc,w])=>`<div class="sp"><span>${s[1]} ${s[0]}<br><small class="sl">${w.join(', ')||'condiciones favorables'}</small></span><span style="color:var(--ac)">${'★'.repeat(sc)}${'☆'.repeat(5-sc)}</span></div>`).join('')}</div><div class="note">Rangos y temporadas orientativos, pendientes de validar. Respeta vedas y tallas mínimas.</div></div>`}
+function chart(l,v,u){const w=300,h=64,mx=Math.max(...v),mn=Math.min(...v),r=(mx-mn)||1,P=v.map((y,i)=>[10+i*(w-20)/(v.length-1),h-8-(y-mn)/r*(h-22)]);return `<div class="sl">${l} (${u}) · mín ${mn} · máx ${mx}</div><svg viewBox="0 0 ${w} ${h}" style="width:100%"><polyline points="${P.map(p=>p.join(',')).join(' ')}" fill="none" style="stroke:var(--ac)" stroke-width="2.5"/>${P.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="3" style="fill:var(--ac)"/>`).join('')}</svg>`}
+function charts(){return chart('Marea',[1.1,0.5,0.3,0.9,1.9,2.6,2.2,1.4],'m')+chart('Presión',[1011,1010,1009,1008,1008,1009,1010,1011],'hPa')+chart('Oleaje',[1.2,1.6,2.0,2.2,1.9,1.5,1.2,1.0].map(x=>+(x*ZN().e).toFixed(1)),'m')}
+function medals(){const P=S.posts,n=P.length,kg=P.map(p=>parseFloat(String(p.kg).replace(',','.'))||0),pd={};P.forEach(p=>{const d=new Date(p.id).toDateString();pd[d]=(pd[d]||0)+1});const u=f=>new Set(P.map(f)).size;
+const M=[['🥇','Primera captura',n>=1],['🐟','Pez gordo (5 kg o más)',Math.max(0,...kg)>=5],['🏆','Gigante (10 kg o más)',Math.max(0,...kg)>=10],['🔥','Día de oro (5 en un día)',Math.max(0,...Object.values(pd))>=5],['📅','Regular (3 días distintos)',Object.keys(pd).length>=3],['🧬','Coleccionista (5 especies)',u(p=>p.sp.toLowerCase())>=5],['🧭','Explorador (3 lugares)',u(p=>p.pl.toLowerCase())>=3],['🎣','Polivalente (pesca, caza y setas)',u(p=>p.c)>=3],['⭐','Veterano (25 capturas)',n>=25]];
+const pts=M.filter(m=>m[2]).length*10+n*2;return `<div class="sl">Medallas · ${pts} puntos</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">${M.map(([e,t,ok])=>`<span class="md" style="opacity:${ok?1:.35}">${e} ${t}</span>`).join('')}</div>`}
+const REN={'Calamar / chipirón':'Txipirón','Breca / pagel':'Breca'};SPEC.forEach(s=>{if(REN[s[0]])s[0]=REN[s[0]]});SPEC.find(s=>s[0]==='Breca')[2]='b';
+const RAIN=2.2,TIDE=['11:27','23:52'];
+function moon(){const jd=Date.now()/864e5+2440587.5,age=(((jd-2451550.1)%29.530588)+29.530588)%29.530588,pct=Math.round((1-Math.cos(2*Math.PI*age/29.530588))/2*100);let n,f='otra';if(age<2||age>27.5){n='Luna nueva';f='nueva'}else if(age<6.4)n='Creciente';else if(age<8.4){n='Cuarto creciente';f='cuarto'}else if(age<13.4)n='Gibosa creciente';else if(age<16.4){n='Luna llena';f='llena'}else if(age<21)n='Gibosa menguante';else if(age<23.5){n='Cuarto menguante';f='cuarto'}else n='Menguante';return{age,pct,n,f}}
+function moonTxt(){const m=moon();return m.n+' '+m.pct+' %'}
+DATA.caza.moon=moonTxt();DATA.setas.moon=moonTxt();
+function win(t,a,b){const[h,m]=t.split(':').map(Number),c=h*60+m,f=x=>{x=((x%1440)+1440)%1440;return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0')};return f(c+a)+' a '+f(c+b)}
+// Parámetros de puntuación (ola m, viento km/h, sw mar de fondo m, tu 0 clara 1 turbia 2 da igual, tmp agua °C, luna fases, mar ventana minutos respecto a pleamar)
+const PAR={'Bonito del norte':{ola:[0,2],vi:25,sw:2,tu:0,tmp:[16,20],se:[6,10]},'Txipirón':{ola:[0,1],vi:15,sw:1,tu:0,rain:8,luna:['llena'],mar:[-120,60],se:[1,12]},'Lubina':{ola:[1,3],vi:40,sw:3,tu:1,luna:['nueva','llena'],se:[1,12]},'Sargo':{ola:[.8,3],vi:35,swmin:1,tu:1,luna:['nueva','llena'],se:[1,12]},'Dorada':{ola:[0,1.2],vi:20,sw:1.2,tu:0,tmp:[18,22],luna:['nueva','llena'],mar:[-120,60],se:[5,11]},'Breca':{ola:[0,1.5],vi:20,sw:1.5,tu:0,mar:[-120,60],se:[1,12]}};
+function sc2(s){const d=zd(),P=PAR[s[0]]||{},ola=P.ola||s[3],vi=P.vi??s[4],tu=P.tu??s[5],se=P.se||s[6],sw=LIVE?LIVE.now.sw:+(1.8*ZN().e).toFixed(1),mo=moon(),m=new Date().getMonth()+1,[a,b]=se;let p=0,w=[];
+if(!(a<=b?m>=a&&m<=b:m>=a||m<=b))return [0,['fuera de temporada']];
+if(d.wave<ola[0]||d.wave>ola[1]){p+=2;w.push('oleaje fuera de rango')}
+if(d.wind>vi){p+=1;w.push('viento alto')}
+if(P.sw!=null&&sw>P.sw){p+=1;w.push('mar de fondo alto')}
+if(P.swmin!=null){if(sw<P.swmin){p+=1;w.push('mar tranquilo: los grandes estarán más profundos')}else if(d.wave<=ola[1])w.push('mar de fondo en las rompientes: favorable')}
+const tb=d.wave>=1.5||d.wind>=25?1:0;if(tu!==2&&tu!==tb){p+=1;w.push('agua '+(tb?'turbia':'clara')+' poco ideal')}
+if(P.tmp&&(d.water<P.tmp[0]||d.water>P.tmp[1])){p+=1;w.push('agua a '+d.water+' °C (ideal '+P.tmp[0]+' a '+P.tmp[1]+')')}
+if(P.luna&&!P.luna.includes(mo.f)){p+=.5;w.push('luna poco favorable')}
+if(P.rain!=null&&(LIVE?LIVE.now.rain:RAIN)>P.rain){p+=1;w.push('lluvia fuerte')}
+if(MODE==='barco'&&d.wave>2.5){p+=2;w.push('mar peligroso para salir')}
+return [Math.max(0,Math.round(5-p)),w]}
+const FICHAS={
+'Bonito del norte':{lat:'Thunnus alalunga (albacora)',t:['✅ Llega al Cantábrico en torno a junio (se reproduce en las Azores) y las fuentes sitúan la pesca de junio a septiembre; 🧑‍🎣 tú añades octubre, según cuándo se acerque por corrientes y temperatura','🧑‍🎣 Agua ideal de 16 a 20 °C (dato tuyo, sin fuente)'],c:['Busca frentes térmicos y cambios de color del agua','Poco oleaje y viento suave para localizar los bancos','Aves marinas, delfines y bandadas de anchoa o chicharro indican dónde está'],l:['Poco determinante: manda la temperatura y la presa'],m:['Mar adentro importan más las corrientes y los frentes que la marea'],ce:['✅ Sardina o anchoa vivas (cebo vivo con caña)','Chicharro vivo y cebado con sardina o anchoa troceada (sin fuente)'],s:['🧑‍🎣 Tus señuelos: vinilos de pulpo pequeños y peces tipo Rapala grandes','✅ Señuelos artificiales de cacea o curricán que simulan una presa'],te:['✅ Cebo vivo con caña: es el método mayoritario en Euskadi y Cantabria','✅ Cacea o curricán con señuelos artificiales: más habitual en Galicia y Asturias','✅ Curricán a unos 6 nudos (el reglamento Eusko Label habla de 4 a 6 nudos)','Spinning pesado y jigging (sin fuente)'],z:['Mar abierto sobre fondos profundos y bordes de talud','Ayuda mucho la ecosonda y el mapa de temperatura del agua'],k:['✅ Gobierno Vasco: atún blanco (bonito del norte), patudo y merluza, 5 piezas por licencia y día, con un máximo de 20 piezas cuando hay 4 o más personas con licencia a bordo','✅ Gobierno Vasco: la temporada recreativa de túnidos va de primeros de julio a octubre (fechas variables)','✅ Gobierno Vasco: hay que mantenerse a 500 m de donde se pesquen túnidos con caña, y la pesca desde embarcación se ejerce del orto al ocaso','⚠️ La exigencia de licencia de túnidos para el barco no la encontré en lo que revisé','🧑‍🎣 Tuyo: agua de 16 a 20 °C','⚠️ Temperatura: ninguna fuente da un valor concreto. Solo consta que es un pez de sangre caliente que migra por aguas templadas y que el calentamiento del agua preocupa a los pescadores','Se llama bonito del norte al ejemplar de más de 4 kg capturado con anzuelo','Sal temprano y busca aves y frentes','Con mar de más de 2 m, valora la seguridad']},
+'Txipirón':{lat:'Calamar europeo (Loligo vulgaris)',t:['✅ Mayo a diciembre es lo habitual, aunque se puede pescar todo el año (Gobierno Vasco)','Mejores meses: otoño e invierno (✅ fuentes de mercado, 🧑‍🎣 coincide con tu experiencia)'],c:['Poco viento, poco oleaje y mar de fondo mínimo','Agua limpia','Tras lluvias fuertes el agua dulce lo aleja de la orilla: evita desembocaduras'],l:['Luna llena: hay más luz y suben a la superficie a comer'],m:['Cambios de marea, últimas horas de subida y primeras de bajada'],ce:['Boquerón o sardina atados a la potera'],s:['Poteras de 1,5 a 2,5 en naranja, rosa, verde o blanco','Poteras luminosas o UV de noche'],te:['Jigging (eging) desde puertos y espigones','Fondeo o deriva en barco con varias poteras','De noche, junto a la luz de los puertos (consulta qué luces permite la normativa)'],z:['Puertos, espigones, rías y fondos de 3 a 30 m con algas o arena'],k:['✅ Gobierno Vasco: la pesca recreativa desde embarcación se ejerce del orto al ocaso, así que de noche solo desde tierra','✅ El chipirón es el calamar joven (Loligo vulgaris); en el País Vasco txipirón también designa al calamar','✅ Caza de noche y se acerca a la costa de primavera a principios de otoño para reproducirse','✅ Se pesca con poteras y peces artificiales. La luz sumergida está regulada y las poteras luminosas no cuentan como tal: verifica la normativa de tu comunidad','🧑‍🎣 Luna llena: hay más luz y suben a la superficie a comer (tu experiencia; una fuente débil coincide)','🧑‍🎣 Tuyo: poco viento y oleaje, mar de fondo mínimo, agua limpia, la lluvia fuerte lo aleja, y cambios de marea (últimas horas de subida y primeras de bajada)','Fluorocarbono fino y recogida con tensión, sin tirones bruscos','Cuidado con la tinta en la ropa y en cubierta']},
+'Lubina':{lat:'Dicentrarchus labrax',t:['Todo el año; muy activa con mar movido'],c:['Mar movido (1 a 3 m) y zonas de espuma','Agua ligeramente turbia','Mareas con corriente'],l:['Luna nueva (noche cerrada) y luna llena','Amanecer y anochecer, momentos muy buenos'],m:['Con movimiento de agua: bocas, desembocaduras y roqueos'],ce:['Gusana de mar','Cangrejo (blando o pelado)','Sardina, anchoa o lanzón','Quisquilla o gamba','Cebo vivo pequeño'],s:['Minnows, paseantes y jerkbaits','Vinilos tipo shad de 10 a 15 cm','Cucharillas y vibrantes en corriente'],te:['Spinning desde roca y espigón','Surfcasting en playas con rompiente','Curricán con minnows desde barco'],z:['Roqueos con espuma, desembocaduras, espigones y bocas de puerto'],k:['✅ Gobierno Vasco: la pesca recreativa de lubina va de abril a diciembre (en otras comunidades puede variar)','✅ Verificado: talla mínima de 36 cm en Cantábrico y Noroeste (Mercasa); confirma en la normativa de tu comunidad','✅ Verificado: vive muy pegada a la costa en zonas rocosas y no teme la fuerza del mar','🧑‍🎣 Tu experiencia: espuma, agua tomada, luna nueva y llena, amanecer y anochecer (sin fuente externa)','Pesca los bordes de espuma y de corriente','En roca, vigila el periodo: oleaje largo trae olas grandes inesperadas']},
+'Sargo':{lat:'Diplodus sargus',t:['Casi todo el año; suele rendir más con agua templada'],c:['Mar movído y zonas espumosas','Con mar de fondo sube a las rompientes de la orilla; con agua tranquila los ejemplares grandes se van a más profundidad','Agua ligeramente tomada','Mareas con movimiento'],l:['Luna nueva para pescar de noche, y luna llena','Mejores franjas: amanecer, anochecer y primeras horas de la noche (tu experiencia)'],m:['Con corriente y buen movimiento de agua'],ce:['Gusana','Cangrejo','Mejillón y lapa','Quisquilla o gamba','Navaja o almeja'],s:['Poco habitual con artificiales'],te:['Boya en roca','Lanzado ligero a fondo','Cebado con pan y mejillón triturado'],z:['Rocas con espuma, bajos con algas y bases de espigón'],k:['✅ Talla mínima en Cantábrico y Noroeste: 15 cm (BOE, Real Decreto 560/1995)','✅ Verificado: se alimenta de algas, erizos, gusanos, caracoles y anfípodos (Wikipedia), por eso funcionan la gusana y el cangrejo','🧑‍🎣 Tu experiencia: activo de día cuando hay mar de fondo, porque sube a las rompientes. Mejores franjas: amanecer, anochecer y primeras horas de la noche. Lo de día coincide con las fuentes; la noche es solo dato tuyo','Cebado constante en la espuma','Línea fina de fluorocarbono, pica con tirón seco']},
+'Dorada':{lat:'Sparus aurata',t:['Agua ideal de 18 a 22 °C (dato de tu experiencia); suele acercarse con el agua templada, de primavera a otoño'],c:['Poco oleaje y poco viento','Aguas claras','Fondos de arena y roca con alimento, y desembocaduras'],l:['Luna nueva o llena'],m:['Últimas horas de subida, pleamar y primera hora de bajada'],ce:['🧑‍🎣 Tus mejores: carramarro (cangrejo verde), navaja y ostra, enteros y del mismo mar donde está la dorada (valen de pescadería si son del Cantábrico)','✅ Navaja o muergo: el cebo más citado en las fuentes','✅ Cangrejo y ermitaño','✅ Almeja y mejillón','✅ Gusano americano, tita y arenícola'],s:['Poco habitual'],te:['🧑‍🎣 Plomo corrido: la dorada comprueba que no haya peligro antes de comer y notar el plomo le da desconfianza','Surfcasting a fondo con anzuelos fuertes','Lanzado a fondo desde roca o espigón','Fondeo en barco cerca de desembocaduras'],z:['🧑‍🎣 Desembocaduras y rías, donde suele encontrarse','Zonas mixtas de arena y roca'],k:['🧑‍🎣 Regla de oro: el cebo tiene que ser de la zona donde pescas; uno de otra costa funciona peor','⚠️ El folleto del Gobierno Vasco prohíbe recolectar moluscos bivalvos (ostra, navaja…) en pesca recreativa; en otras comunidades puede variar. Comprarlos en pescadería, del Cantábrico, evita el problema','✅ Talla mínima en el Cantábrico: 19 cm (folleto del Gobierno Vasco)','✅ Se pesca con surfcasting desde la orilla o desde embarcación','✅ Anzuelos de curva gruesa: mastica el cebo y lo suelta si nota resistencia','🧑‍🎣 Tuyo: agua de 18 a 22 °C, poco oleaje y viento, agua clara, fondos de arena y roca, desembocaduras, luna nueva o llena, y últimas horas de subida, pleamar y primera de bajada','⚠️ No encontré fuente para temperatura, luna ni marea de la dorada en el Cantábrico','Cebos duros y bien atados: sus dientes los destrozan','🧑‍🎣 Línea: bajo largo y lo más fino posible para engañarla (es un pez listo), pero no tan fino como para otras especies: pelea bien y en zona de ostras la línea tiene que aguantar el roce']},
+'Breca':{lat:'Pagellus erythrinus',t:['Todo el año; se acerca a costa o se mete adentro según la época'],c:['Poco viento y poco oleaje','Agua normalmente clara','Fondos de arena, grava, roca o fango, alejado de la orilla'],l:['Sirve cualquier fase: nueva, llena o cuartos'],m:['Últimas 2 horas de subida, pleamar y primeras horas de bajada'],ce:['🧑‍🎣 Tus mejores: quisquilla, gusana, txipirón y navaja','🧑‍🎣 Si el cebo está vivo, siempre es más eficaz','Sardina o anchoa troceada (sin fuente)'],s:['Poco habitual'],te:['🧑‍🎣 A fondo, con quitavueltas triple: el plomo atado a un brazo y una línea de 2 m con el anzuelo en otro'],z:['🧑‍🎣 Busca fondos arenosos cerca de rocas','✅ Fondos rocosos, de grava, arena y fango; a veces entra en puertos','✅ Normalmente entre 20 y 100 m, aunque puede estar más profundo (hasta unos 300 m)'],k:['⚠️ Talla mínima: el BOE la fija para el pagel, pero los textos que encontré mezclan caladeros (22 cm en Canarias, otros valores en otros). Hay que leer el Anexo I del Cantábrico','✅ Gobierno Vasco (pesca recreativa): al recolectar gusana (Nereis, Arenicola) el tope es de 40 unidades y la talla mínima de 50 o 100 mm; quisquilla, 200 g y 30 mm','🧑‍🎣 Tuyo: poco viento y oleaje, agua clara, cualquier fase lunar y ventana alrededor de la pleamar','Anzuelos pequeños y línea fina (sin fuente)','Ajusta el cebo al tamaño de bocado']}};
+const FAV=new Set(['Bonito del norte','Txipirón','Lubina','Sargo','Dorada','Breca']);
+const mk=(lat,t,c,l,m,ce,s,te,z,k)=>({lat,t,c,l,m,ce,s,te,z,k,p:1});
+Object.assign(FICHAS,{
+'Mubles / lisa':mk('Chelon labrosus y otros múgiles',['Todo el año'],['Aguas tranquilas, portuarias y de desembocadura','Poco oleaje; toleran agua turbia o salobre'],['Sin datos fiables'],['Mejor con algo de corriente en bocas y puertos'],['Masilla de pan y harina','Gusana','Trocitos de gamba'],[],['Boya con anzuelo pequeño y cebado constante','Fondo ligero'],['Puertos, rías y desembocaduras'],['Cebar mucho y de forma constante','Son desconfiados: línea fina y anzuelo pequeño']),
+'Jurel / chicharro':mk('Trachurus trachurus',['Mayo a noviembre (orientativo)'],['Mar tranquilo y agua clara','Presencia de pescadito pequeño y aves'],['Poco determinante'],['Algo de corriente ayuda'],['Sardina, anchoa o gusana','Trozos de calamar'],['Plumas tipo sabiki','Cucharillas pequeñas'],['Sabiki desde barco o espigón','Spinning ligero'],['Aguas abiertas, bocas de puerto y espigones'],['Amanecer y atardecer suelen ser mejores','Tiene talla mínima en el Cantábrico: consulta la tabla oficial']),
+'Caballa':mk('Scomber scombrus',['Abril a octubre (orientativo)'],['Mar tranquilo','Bancos cerca de superficie con presas pequeñas'],['Poco determinante'],['Con corriente suele moverse más'],['Sardina o anchoa en tiras'],['Plumas tipo sabiki','Cucharillas y vinilos pequeños'],['Sabiki desde barco o espigón','Spinning ligero','Curricán suave'],['Aguas abiertas y bocas de puerto'],['Busca aves y cebaderos','Tiene talla mínima: consulta la tabla oficial']),
+'Anchoa':mk('Engraulis encrasicolus',['Primavera (la costera de la anchoa), orientativo'],['Mar tranquilo','Bancos cerca de la costa en primavera'],['Sin datos fiables'],['Sin datos fiables'],['Plumas pequeñas'],['Sabiki fino'],['Sabiki desde barco o puerto'],['Aguas costeras y bocas de puerto'],['Especie con normativa y cuotas: consulta qué permite la pesca recreativa']),
+'Congrio':mk('Conger conger',['Todo el año'],['Fondos rocosos y restos de naufragios','Aguanta casi cualquier mar'],['Mejor de noche, con luna nueva'],['Corriente moderada'],['Sardina, caballa o calamar enteros o en trozos','Cangrejo o pulpo'],[],['Fondo con terminal fuerte desde barco o roca','Fondeo en zonas rocosas'],['Fondos rocosos de 10 a más de 100 m'],['Terminal grueso o de acero: tiene dientes y mucha fuerza','Tiene talla mínima en el Cantábrico: consulta la tabla oficial']),
+'Maragota':mk('Labrus bergylta',['Abril a octubre (orientativo)'],['Mar algo movido','Agua clara o ligeramente tomada'],['Sin datos fiables'],['Corriente moderada'],['Gusana','Cangrejo','Quisquilla o gamba','Mejillón'],['Vinilos pequeños'],['Boya o fondo ligero entre rocas y algas'],['Roqueos con algas a poca profundidad'],['Pica cerca de la roca: línea fuerte y recoge rápido']),
+'Besugo':mk('Pagellus bogaraveo',['Tradicionalmente otoño e invierno (orientativo)'],['Fondos rocosos y mixtos profundos','Poco viento y mar tranquilo para el fondeo'],['Sin datos fiables'],['Sin datos fiables'],['Sardina, anchoa, calamar o lombriz'],[],['Fondeo o deriva con brazoladas y plomada pesada'],['Fondos profundos, de unos 100 m o más (orientativo)'],['En el Cantábrico y Noroeste el límite recreativo es de 1 pieza al año por licencia (Ministerio de Pesca): verifica que siga vigente','Tiene talla mínima']),
+'Merluza':mk('Merluccius merluccius',['Todo el año'],['Fondos blandos y mixtos profundos','Mar tranquilo'],['Sin datos fiables'],['Sin datos fiables'],['Sardina, caballa o calamar'],['Jigs y poteras'],['Fondeo con brazoladas','Pesca de profundidad con electrónica'],['Fondos de unos 80 a 300 m (orientativo)'],['Tiene talla mínima y cuotas: revisa la normativa recreativa']),
+'Rape':mk('Lophius piscatorius',['Todo el año'],['Fondos blandos y mixtos','Mar tranquilo'],['Sin datos fiables'],['Sin datos fiables'],['Sardina, caballa o calamar'],[],['Fondo con terminal fuerte desde barco'],['Fondos de arena y fango, profundos'],['Revisa tallas y normativa antes de salir']),
+'Pulpo':mk('Octopus vulgaris',['Mayo a octubre (orientativo)'],['Mar calmado y agua clara','Fondos rocosos con grietas'],['Sin datos fiables'],['Mejor con poca corriente'],['Cangrejo (muy efectivo)','Pescado o gamba'],['Poteras de pulpo y señuelos tipo cangrejo'],['Caña ligera con cangrejo o potera desde espigón','Rascado de fondo desde barco'],['Roqueos, espigones y puertos'],['Suele tener normativa propia de cupos: consulta la de tu comunidad']),
+'Sepia':mk('Sepia officinalis',['Primavera y principios de verano, cuando se acerca a costa (orientativo)'],['Agua clara y mar calmado','Fondos de arena y algas'],['Sin datos fiables'],['Mejor con poca corriente'],['Gamba o pescadito con potera'],['Poteras de sepia y señuelos tipo gamba'],['Jigging con potera desde costa y barco'],['Puertos, bahías y fondos de arena con algas'],['Cuida la ropa: suelta tinta']),
+'Rodaballo':mk('Scophthalmus maximus',['Todo el año'],['Fondos de arena y mixtos','Mar tranquilo'],['Sin datos fiables'],['Mejor con algo de corriente'],['Lanzón, sardina, calamar o gusana'],[],['Fondeo o deriva con cebo cerca del fondo'],['Fondos de arena y mixtos de 20 a 80 m (orientativo)'],['Tiene talla mínima: consulta la tabla oficial']),
+'Lenguado':mk('Solea solea',['Todo el año'],['Fondos de arena y fango en rías y bahías','Poco oleaje'],['Mejor de noche, con luna nueva'],['Con corriente suave'],['Gusana','Lombriz','Almeja o navaja'],[],['Fondo con aparejo ligero sobre arena'],['Rías, bahías y playas tranquilas'],['Tiene talla mínima: consulta la tabla oficial']),
+'Cabracho':mk('Scorpaena scrofa',['Todo el año'],['Fondos rocosos','Mar tranquilo'],['Sin datos fiables'],['Sin datos fiables'],['Sardina, calamar o gamba'],[],['Fondeo con brazoladas sobre roca'],['Fondos rocosos profundos'],['Espinas venenosas: manipula con guantes y pinza']),
+'Palometa':mk('Probablemente Trachinotus ovatus (el nombre cambia según la zona)',['Junio a octubre (orientativo)'],['Aguas claras y templadas','Mar movido cerca de playas y rocas'],['Sin datos fiables'],['Con corriente'],['Gamba, gusana o trozos de pescado'],['Cucharillas y vinilos pequeños'],['Spinning ligero','Surfcasting'],['Playas, bocas de ría y roqueos'],['Confirma la especie y su normativa antes de pescar']),
+'Serviola':mk('Seriola dumerili',['Junio a octubre (orientativo)'],['Aguas abiertas, roqueos profundos y pecios','Poco viento'],['Sin datos fiables'],['Con corriente'],['Chicharro o caballa vivos'],['Jigs verticales y poppers'],['Cebo vivo','Jigging','Popping'],['Pecios y zonas rocosas profundas'],['Pelea muy fuerte: material pesado','Su presencia en el Cantábrico puede variar']),
+});
+function fiche(i){const s=SPEC[i],n=s[0],F=FICHAS[n],[sc,w]=sc2(s),mo=moon(),P=PAR[n]||{};
+const L=(t,a)=>a&&a.length?`<div class='sl'><b>${t}</b></div><ul style='margin:2px 0 6px;padding-left:18px;font-size:14px'>${a.map(x=>`<li>${x}</li>`).join('')}</ul>`:'';
+$('fd').innerHTML=`<strong>${s[1]} ${n}</strong>${F?` <small class='sl'>${F.lat}</small>`:''}<div class='tip'>Ahora: ${'★'.repeat(sc)}${'☆'.repeat(5-sc)} · ${w.join(', ')||'condiciones favorables'}<br>🌙 ${mo.n} ${mo.pct} %${P.mar?`<br>🕐 Pleamares ${TIDE.join(' y ')} (${LIVE?'modelo Open-Meteo, horas aproximadas':'ejemplo'}). Mejores horas (alrededor de la pleamar): ${TIDE.map(t=>win(t,...P.mar)).join(' · ')}`:''}</div>${F?L('Temporada y agua',F.t)+L('Condiciones ideales',F.c)+L('Luna',F.l)+L('Marea y horas',F.m)+L('Cebos',F.ce)+L('Señuelos',F.s)+L('Técnicas',F.te)+L('Dónde',F.z)+L('Consejos',F.k):'<p>Ficha pendiente. Cuéntame lo que sabes y la completamos.</p>'}${F&&F.p?`<div class='tip'>⚠️ Ficha provisional: escrita con conocimiento general y sin verificar. Revisemos juntos.</div>`:''}<div class='note'>Información orientativa. Consulta vedas, tallas mínimas y normativa de tu comunidad.</div><div class='acts'><button class='btn' onclick="$('fd').close()">Cerrar</button></div>`;$('fd').showModal()}
+function specUI(){const L=SPEC.filter(s=>MODE==='all'||s[2].includes(MODE==='costa'?'c':'b')).map(s=>{const[sc,w]=sc2(s);return [s,sc,w]}).sort((x,y)=>(FAV.has(y[0][0])-FAV.has(x[0][0]))||y[1]-x[1]);
+return `<div class='card today'><h2>🐟 Qué pescar hoy en ${ZONES[ZI][0]}</h2><div class='tabs'>${[['all','Todas'],['costa','Costa'],['barco','Barco']].map(([k,n])=>`<button class='tab ${MODE===k?'on':''}' onclick="setMode('${k}')">${n}</button>`).join('')}</div><div style='max-height:360px;overflow:auto'>${L.map(([s,sc,w])=>`<div class='sp' style='cursor:pointer' onclick='fiche(${SPEC.indexOf(s)})'><span>${FAV.has(s[0])?'⭐ ':''}${s[1]} ${s[0]}${FICHAS[s[0]]?' 📖':''}<br><small class='sl'>${w.join(', ')||'condiciones favorables'}</small></span><span style='color:var(--ac)'>${'★'.repeat(sc)}${'☆'.repeat(5-sc)}</span></div>`).join('')}</div><div class='note'>Toca una especie con 📖 para ver su ficha. Rangos orientativos, pendientes de validar.</div></div>`}
+const COORD=[[43.70,-7.05],[43.75,-6.55],[43.75,-5.70],[43.55,-4.75],[43.60,-3.78],[43.55,-2.72],[43.45,-1.95]];
+let LIVE=null,LSTAT='Datos de ejemplo',LTOK=0;
+const dT=d=>['N','NE','E','SE','S','SO','O','NO'][Math.round(d/45)%8];
+const nv=(a,d)=>a==null?'–':+(+a).toFixed(d||0);
+async function loadLive(){const t=++LTOK;LIVE=null;LSTAT='Cargando datos reales…';render();
+try{const [la,lo]=COORD[ZI],q=u=>fetch(u).then(r=>{if(!r.ok)throw 0;return r.json()});
+const [w,m]=await Promise.all([q(`https://api.open-meteo.com/v1/forecast?latitude=${la}&longitude=${lo}&hourly=temperature_2m,precipitation,pressure_msl,wind_speed_10m,wind_gusts_10m,wind_direction_10m,cloud_cover&wind_speed_unit=kmh&timezone=auto&forecast_days=3`),q(`https://marine-api.open-meteo.com/v1/marine?latitude=${la}&longitude=${lo}&hourly=wave_height,wave_period,swell_wave_height,swell_wave_period,ocean_current_velocity,sea_level_height_msl,sea_surface_temperature&timezone=auto&forecast_days=3`)]);
+if(t!==LTOK)return;
+const h=w.hourly,k=m.hourly,off=(w.utc_offset_seconds||0)*1000;
+let i=h.time.findIndex(x=>Date.parse(x+'Z')-off>=Date.now());if(i<0)i=0;
+let j=k.time.indexOf(h.time[i]);if(j<0)j=i;
+if(k.wave_height[j]==null)throw 0;
+const S=[0,3,6,9,12,15,18,21],a=(o,s)=>S.map(x=>o[s+x]),sl=k.sea_level_height_msl;
+const ex=f=>{const r=[];for(let x=j+1;x<Math.min(j+40,sl.length-1);x++)if(sl[x]!=null&&f(sl[x],sl[x-1],sl[x+1]))r.push(k.time[x].slice(11,16));return r};
+const hi=ex((v,p,n)=>v>p&&v>=n),lw=ex((v,p,n)=>v<p&&v<=n);
+TIDE.length=0;TIDE.push(...hi.slice(0,2));
+LIVE={H:S.map(x=>h.time[i+x].slice(11,13)),
+r:{wind:a(h.wind_speed_10m,i),gust:a(h.wind_gusts_10m,i),dir:a(h.wind_direction_10m,i),wave:a(k.wave_height,j),per:a(k.wave_period,j),sw:a(k.swell_wave_height,j),swp:a(k.swell_wave_period,j),tide:a(sl,j),cur:a(k.ocean_current_velocity,j),temp:a(h.temperature_2m,i),pres:a(h.pressure_msl,i),rain:a(h.precipitation,i),cloud:a(h.cloud_cover,i)},
+ch:{m:sl.slice(j,j+24).map(v=>v??0),p:h.pressure_msl.slice(i,i+24).map(v=>v??0),o:k.wave_height.slice(j,j+24).map(v=>v??0)},
+now:{wind:Math.round(h.wind_speed_10m[i]),gust:Math.round(h.wind_gusts_10m[i]),dir:dT(h.wind_direction_10m[i]),wave:+k.wave_height[j].toFixed(1),per:Math.round(k.wave_period[j]||0),sw:+(k.swell_wave_height[j]||0).toFixed(1),water:+(k.sea_surface_temperature[j]||0).toFixed(1),tide:`Pleamar ${hi.slice(0,2).join(' y ')||'s/d'} · bajamar ${lw.slice(0,2).join(' y ')||'s/d'}`,coef:'s/d',pres:Math.round(h.pressure_msl[i]),dpres:Math.round(h.pressure_msl[i+6]-h.pressure_msl[i]),rain:+h.precipitation.slice(i,i+24).reduce((s,v)=>s+(v||0),0).toFixed(1)}};
+LSTAT='Datos reales (Open-Meteo), '+h.time[i].slice(11,16)}
+catch(e){if(t!==LTOK)return;LIVE=null;LSTAT='Datos de ejemplo (no se pudo conectar)'}
+render()}
+function liveRows(sc,W,TP,RN,PR){const r=LIVE.r,f=(a,d)=>a.map(v=>nv(v,d));return [['Viento','km/h',f(r.wind),W],['Rachas','km/h',f(r.gust),W],['Dir.','',r.dir.map(v=>Math.round(v||0)),null,1],['Olas','m',f(r.wave,1),sc(0,4,190,0)],['Periodo','s',f(r.per),null],['Mar fondo','m',f(r.sw,1),sc(0,3,190,0)],['Per. fondo','s',f(r.swp),null],['Marea','m',f(r.tide,1),sc(-2,2,200,230)],['Corriente','km/h',f(r.cur,1),sc(0,3,170,0)],['Temp.','°C',f(r.temp),TP],['Presión','hPa',f(r.pres),null],['Lluvia','mm',f(r.rain,1),RN],['Nubes','%',f(r.cloud),PR]]}
+function charts(){const e=ZN().e,s=LIVE?LIVE.ch:{m:[1.1,0.5,0.3,0.9,1.9,2.6,2.2,1.4],p:[1011,1010,1009,1008,1008,1009,1010,1011],o:[1.2,1.6,2.0,2.2,1.9,1.5,1.2,1.0].map(x=>+(x*e).toFixed(1))};return chart('Marea (nivel del mar)',s.m,'m')+chart('Presión',s.p,'hPa')+chart('Oleaje',s.o,'m')}
+function wg(k){
+const H=LIVE&&k==='pesca'?LIVE.H:['06','09','12','15','18','21','00','03'];
+const sc=(a,b,h1,h2)=>v=>`hsl(${Math.round(h1+(h2-h1)*Math.max(0,Math.min(1,(v-a)/(b-a))))} 75% 66%)`;
+const W=sc(0,40,190,10),TP=sc(-5,30,220,10),RN=sc(0,3,200,250),HM=sc(40,100,40,210),PR=sc(0,100,50,220);
+const R={
+pesca:[['Viento','km/h',[18,22,28,31,24,16,12,10],W],['Rachas','km/h',[26,32,41,44,35,24,18,15],W],['Dir.','',[225,225,230,235,240,250,260,270],null,1],['Olas','m',[1.2,1.6,2.0,2.2,1.9,1.5,1.2,1.0],sc(0,4,190,0)],['Periodo','s',[8,8,9,9,9,8,8,7],null],['Marea','m',[1.1,0.5,0.3,0.9,1.9,2.6,2.2,1.4],sc(0,3,200,230)],['Temp.','°C',[13,15,17,17,16,14,13,12],TP],['Lluvia','mm',[0,0,0.4,1.2,0.6,0,0,0],RN]],
+caza:[['Temp.','°C',[4,8,13,12,9,6,5,4],TP],['Viento','km/h',[6,8,11,10,7,5,4,4],W],['Rachas','km/h',[10,14,19,17,12,9,7,6],W],['Dir.','',[320,320,315,310,305,300,300,310],null,1],['Lluvia','mm',[0,0,0,0,0,0.2,0,0],RN],['Humedad','%',[92,86,70,68,78,85,90,92],HM],['Nubes','%',[10,20,40,50,30,20,10,10],PR],['Presión','hPa',[1019,1020,1021,1021,1022,1022,1021,1021],null]],
+setas:[['Humedad','%',[94,90,78,74,82,89,93,95],HM],['Temp.','°C',[5,9,14,13,10,8,6,5],TP],['Suelo','°C',[10,10,12,12,11,11,10,10],TP],['Lluvia','mm',[0,0,0,0.3,0.8,0.2,0,0],RN],['Viento','km/h',[5,7,10,9,6,5,4,4],W],['Nubes','%',[30,40,60,70,50,40,30,30],PR]]}[k];
+if(k==='pesca'&&LIVE){R.length=0;R.push(...liveRows(sc,W,TP,RN,PR))}else if(k==='pesca'){R[3][2]=R[3][2].map(x=>+(x*ZN().e).toFixed(1));R.push(['Mar fondo','m',[0.9,1.2,1.6,1.8,1.5,1.2,1.0,0.8],sc(0,3,190,0)],['Per. fondo','s',[12,12,13,13,13,12,12,11],null],['Corriente','kn',[0.4,0.6,0.3,0.5,0.7,0.4,0.3,0.4],sc(0,2,170,0)],['Presión','hPa',[1011,1010,1009,1008,1008,1009,1010,1011],null],['Nubes','%',[20,40,70,85,60,40,30,20],PR])}return `<div class="sl">Previsión por horas (desliza para ver más)</div><div class="wgw"><table class="wg"><tr><th></th>${H.map(h=>`<th>${h}h</th>`).join('')}</tr>${R.map(([l,u,v,f,ar])=>`<tr><th>${l} <small>${u}</small></th>${v.map(x=>`<td style="${f&&typeof x==='number'?`background:${f(x)};color:#111`:''}">${ar?`<span style="display:inline-block;transform:rotate(${x}deg)">↓</span>`:x}</td>`).join('')}</tr>`).join('')}</table></div>`}
+function detail(k){const d=k==='pesca'?zd():DATA[k];let c,tip;
+if(k==='pesca'){c={t:`🌬️ ${d.wind} km/h ${d.dir} (rachas ${d.gust})`,a:`🌊 ${d.wave} m · ${d.per} s · 🌡️ agua ${d.water} °C`,b:`🌙 ${d.tide} · coef. ${d.coef} · ${d.pres} hPa (${d.dpres} en 6 h)`};
+ const turbio=d.wave>=1.5||d.wind>=25;
+ if(d.wave>=3)tip='Mar muy fuerte: hoy prima la seguridad. Evita pescar desde roca expuesta.';
+ else if(turbio)tip='Mar movido y agua turbia: lubina y sargo suelen entrar a cazar cerca de roca y espuma. Aprovecha el cambio de marea.';
+ else tip='Mar calmado y agua clara: mejor con señuelos discretos y al amanecer o atardecer.';
+ if(d.dpres<=-3)tip+=' La presión baja: la actividad suele subir antes del frente.';}
+else if(k==='caza'){c={t:`🌡️ ${d.temp} °C (máx ${d.max})`,a:`💨 ${d.wind} km/h ${d.dir} · 🌧️ ${d.rain} mm · 💧 ${d.hum} %`,b:`🌙 ${d.moon} · ${d.pres} hPa (+${d.dpres} en 6 h)`};
+ tip=d.max<=15?'Fresco: el corzo suele subir a zonas altas buscando hierba húmeda. Atento a primera y última luz.':'Calor: la actividad se concentra al amanecer y al anochecer, y baja en las horas centrales.';
+ if(d.wind>=25)tip+=' Viento fuerte: dificulta el rececho.';
+ tip+=' Revisa la normativa y las fechas de tu coto.';}
+else{c={t:`🌧️ ${d.rain7} mm en 7 días`,a:`🌡️ suelo ${d.soil} °C · mínima ${d.tmin} °C · 💧 ${d.hum} %`,b:`🌙 ${d.moon}`};
+ tip=d.rain7>=25&&d.soil>=8&&d.soil<=18?'Humedad y temperatura de suelo favorables: buenas condiciones para boletus y níscalos, 5 a 10 días tras la lluvia.':d.rain7<10?'Poca lluvia reciente: pocas setas esperables.':'Condiciones medias: prueba zonas umbrías y con humedad.';
+ if(d.tmin<=2)tip+=' Riesgo de helada: puede frenar la salida.';}
+const m=Math.max(...d.hours.map(h=>h[1]));
+c.strip=`<div class="sl">${d.lab} (${d.unit})</div><div class="strip">${d.hours.map(([h,v])=>`<div><b>${v}</b><i style="height:${Math.round(v/m*38)+4}px"></i><small>${h}</small></div>`).join('')}</div>`;
+c.tip=tip;c.strip=wg(k)+(k==='pesca'?charts():'');return c}
+const seed=[
+{id:1,u:'@pescador_nort',c:'pesca',sp:'Lubina',kg:'5 kg',pl:'Cantabria',tx:'Al amanecer con rizo. ¡Qué bicho!',l:42},
+{id:2,u:'@monte_alto',c:'caza',sp:'Corzo',kg:'Macho 14 kg',pl:'Sierra de Gredos',tx:'Lance de mañana, buen viento.',l:31},
+{id:3,u:'@micologo_ana',c:'setas',sp:'Boletus edulis',kg:'1,2 kg',pl:'Pinar de Soria',tx:'Cesta llena tras las lluvias.',l:58}];
+let S={tab:'todo',posts:[],user:'@invitado'};
+try{const d=JSON.parse(localStorage.getItem('capt')||'null');if(d){S.posts=d.posts||[];S.user=d.user||S.user}}catch(e){}
+const save=()=>{try{localStorage.setItem('capt',JSON.stringify({posts:S.posts,user:S.user}))}catch(e){}};
+const $=i=>document.getElementById(i);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function render(){
+ $('tabs').innerHTML=Object.entries(CATS).map(([k,[n,e]])=>`<button class="tab ${S.tab===k?'on':''}" data-k="${k}">${e} ${n}</button>`).join('');
+ $('tabs').querySelectorAll('.tab').forEach(b=>b.onclick=()=>{S.tab=b.dataset.k;render()});
+ const ks=S.tab==='todo'?['pesca','caza','setas']:[S.tab];
+ $('today').innerHTML=ks.map(k=>{const c=detail(k);return `<div class="card today"><h2>${CATS[k][1]} Hoy en ${CATS[k][0].toLowerCase()}</h2><div class="row"><span>${c.t}</span><span>${c.a}</span><span>${c.b}</span></div>${c.strip}<div class="tip">💡 ${c.tip}</div><div class="note">Datos de ejemplo del prototipo.</div></div>`}).join('');
+ if(S.tab==='pesca')$('today').innerHTML=zoneUI()+$('today').innerHTML+specUI();
+ const all=[...S.posts,...seed].filter(p=>S.tab==='todo'||p.c===S.tab);
+ $('feed').innerHTML=all.map(p=>`<div class="card"><div class="who"><span class="av">${esc(p.u.slice(1,2).toUpperCase())}</span>${esc(p.u)}<span class="badge b-${p.c}">${CATS[p.c][0]}</span></div>
+ <div class="ph">${p.img?`<img src="${p.img}" alt="">`:EMO[p.c]}</div>
+ <div class="meta"><button class="like" data-id="${p.id}">${p.liked?'❤️':'🤍'}</button> <small>${p.l} me gusta</small>
+ <div><strong>${esc(p.sp)}</strong>${p.kg?' · '+esc(p.kg):''}${p.pl?' · 📍'+esc(p.pl):''}</div>${p.tx?`<div>${esc(p.tx)}</div>`:''}</div></div>`).join('');
+ $('feed').querySelectorAll('.like').forEach(b=>b.onclick=()=>{const p=[...S.posts,...seed].find(x=>x.id==b.dataset.id);p.liked=!p.liked;p.l+=p.liked?1:-1;save();render()});
+}
+$('add').onclick=()=>{if(S.tab!=='todo')$('cat').value=S.tab;$('dlg').showModal()};
+$('cx').onclick=()=>$('dlg').close();
+$('me').onclick=()=>{$('un').value=S.user;$('med').innerHTML=medals();$('pd').showModal()};
+$('sv').onclick=()=>{let u=$('un').value.trim()||'@invitado';if(u[0]!=='@')u='@'+u;S.user=u;save();$('pd').close()};
+function shrink(file){return new Promise(r=>{if(!file)return r(null);const im=new Image,fr=new FileReader;fr.onload=()=>{im.onload=()=>{const m=520,s=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',.7))};im.onerror=()=>r(null);im.src=fr.result};fr.onerror=()=>r(null);fr.readAsDataURL(file)})}
+$('f').onsubmit=async e=>{e.preventDefault();
+ const img=await shrink($('ph').files[0]);
+ S.posts.unshift({id:Date.now(),u:S.user,c:$('cat').value,sp:$('sp').value,kg:$('kg').value,pl:$('pl').value,tx:$('tx').value,img,l:0});
+ save();$('f').reset();$('dlg').close();S.tab='todo';render()};
+render();loadLive();
+</script>
+</body>
+</html>
