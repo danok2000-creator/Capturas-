@@ -161,16 +161,16 @@ const [w,m]=await Promise.all([qg(`https://api.open-meteo.com/v1/forecast?latitu
 if(t!==LTOK)return;
 const h=w.hourly,k=m.hourly,off=(w.utc_offset_seconds||0)*1000;
 let i=h.time.findIndex(x=>Date.parse(x+'Z')-off>=Date.now());if(i<0)i=0;
-let j=k.time.indexOf(h.time[i]);if(j<0)j=i;
+let j=k.time.indexOf(h.time[i]);if(j<0)j=i;const pk=(k.wave_peak_period&&k.wave_peak_period.some(v=>v!=null))?k.wave_peak_period:k.wave_period;
 if(k.wave_height[j]==null)throw 0;
 const S=[0,3,6,9,12,15,18,21],a=(o,s)=>S.map(x=>o[s+x]),sl=k.sea_level_height_msl;
 const ex=f=>{const r=[];for(let x=j+1;x<Math.min(j+40,sl.length-1);x++)if(sl[x]!=null&&f(sl[x],sl[x-1],sl[x+1]))r.push(k.time[x].slice(11,16));return r};
 const hi=ex((v,p,n)=>v>p&&v>=n),lw=ex((v,p,n)=>v<p&&v<=n);
 TIDE.length=0;TIDE.push(...hi.slice(0,2));
 LIVE={H:S.map(x=>h.time[i+x].slice(11,13)),D:S.map(x=>dl(h.time[i+x])),
-r:{wind:a(h.wind_speed_10m,i),gust:a(h.wind_gusts_10m,i),dir:a(h.wind_direction_10m,i),wave:a(k.wave_height,j),per:a(k.wave_peak_period||k.wave_period,j),sw:a(k.swell_wave_height,j),swp:a(k.swell_wave_period,j),tide:a(sl,j),cur:a(k.ocean_current_velocity,j),temp:a(h.temperature_2m,i),pres:a(h.pressure_msl,i),rain:a(h.precipitation,i),cloud:a(h.cloud_cover,i)},
+r:{wind:a(h.wind_speed_10m,i),gust:a(h.wind_gusts_10m,i),dir:a(h.wind_direction_10m,i),wave:a(k.wave_height,j),per:a(pk,j),sw:a(k.swell_wave_height,j),swp:a(k.swell_wave_period,j),tide:a(sl,j),cur:a(k.ocean_current_velocity,j),temp:a(h.temperature_2m,i),pres:a(h.pressure_msl,i),rain:a(h.precipitation,i),cloud:a(h.cloud_cover,i)},
 ch:{m:sl.slice(j,j+24).map(v=>v??0),p:h.pressure_msl.slice(i,i+24).map(v=>v??0),o:k.wave_height.slice(j,j+24).map(v=>v??0)},
-now:{wind:Math.round(h.wind_speed_10m[i]),gust:Math.round(h.wind_gusts_10m[i]),dir:dT(h.wind_direction_10m[i]),wave:+k.wave_height[j].toFixed(1),per:Math.round((k.wave_peak_period||k.wave_period)[j]||0),sw:+(k.swell_wave_height[j]||0).toFixed(1),water:+(k.sea_surface_temperature[j]||0).toFixed(1),tide:`Pleamar ${hi.slice(0,2).join(' y ')||'s/d'} · bajamar ${lw.slice(0,2).join(' y ')||'s/d'}`,coef:'s/d',pres:Math.round(h.pressure_msl[i]),dpres:Math.round(h.pressure_msl[i+6]-h.pressure_msl[i]),rain:+h.precipitation.slice(i,i+24).reduce((s,v)=>s+(v||0),0).toFixed(1)}};
+now:{wind:Math.round(h.wind_speed_10m[i]),gust:Math.round(h.wind_gusts_10m[i]),dir:dT(h.wind_direction_10m[i]),wave:+k.wave_height[j].toFixed(1),per:Math.round(pk[j]||0),sw:+(k.swell_wave_height[j]||0).toFixed(1),water:+(k.sea_surface_temperature[j]||0).toFixed(1),tide:`Pleamar ${hi.slice(0,2).join(' y ')||'s/d'} · bajamar ${lw.slice(0,2).join(' y ')||'s/d'}`,coef:'s/d',pres:Math.round(h.pressure_msl[i]),dpres:Math.round(h.pressure_msl[i+6]-h.pressure_msl[i]),rain:+h.precipitation.slice(i,i+24).reduce((s,v)=>s+(v||0),0).toFixed(1)}};
 LSTAT='Datos reales (Open-Meteo), '+h.time[i].slice(11,16)}
 catch(e){if(t!==LTOK)return;LIVE=null;LSTAT='Datos de ejemplo (no se pudo conectar)'}
 render()}
@@ -201,7 +201,9 @@ async function authCall(path,body){const r=await fetch(SBU+'/auth/v1/'+path,{met
 function saveAuth(j){j.expires_at=j.expires_at||Math.floor(Date.now()/1000)+(j.expires_in||3600);AUTH=j;try{localStorage.setItem('sbsess',JSON.stringify(j))}catch(e){}}
 async function initAuth(){try{const a=JSON.parse(localStorage.getItem('sbsess')||'null');if(a){if(a.expires_at*1000<Date.now()+60000)saveAuth(await authCall('token?grant_type=refresh_token',{refresh_token:a.refresh_token}));else AUTH=a}}catch(e){AUTH=null}
 if(AUTH)await loadProfile();await loadFeed()}
-async function loadProfile(){try{const p=await sbf(`/rest/v1/profiles?select=username&id=eq.${AUTH.user.id}`);if(p&&p[0])S.user='@'+p[0].username}catch(e){}}
+async function loadProfile(){try{const p=await sbf(`/rest/v1/profiles?select=username&id=eq.${AUTH.user.id}`);if(p&&p[0]){S.user='@'+p[0].username;return}
+for(let t=0;t<3;t++){const un=(prompt('Elige tu nombre de usuario (3 a 24 letras, números o _)')||'').trim().replace(/^@/,'');if(!/^[A-Za-z0-9_]{3,24}$/.test(un)){if(!un)return;continue}
+try{await sbf('/rest/v1/profiles',{method:'POST',body:JSON.stringify({id:AUTH.user.id,username:un})});S.user='@'+un;return}catch(e){if(!/duplicate|23505/.test(e.message)){alert('No se pudo crear el perfil: '+e.message);return}alert('Ese usuario ya existe, prueba otro')}}}catch(e){}}
 function openAuth(){$('am').textContent='';$('ad').showModal()}
 async function doAuth(reg){const em=$('ae').value.trim(),pw=$('ap').value,un=$('au').value.trim().replace(/^@/,'');$('am').textContent='Un momento…';
 try{if(reg&&!/^[A-Za-z0-9_]{3,24}$/.test(un))throw new Error('El usuario necesita de 3 a 24 letras, números o guion bajo');
@@ -274,7 +276,7 @@ $('me').onclick=()=>{if(!AUTH){openAuth();return}$('un').value=S.user;$('med').i
 $('sv').onclick=()=>{let u=$('un').value.trim()||'@invitado';if(u[0]!=='@')u='@'+u;S.user=u;save();$('pd').close()};
 function shrink(file){return new Promise(r=>{if(!file)return r(null);const im=new Image,fr=new FileReader;fr.onload=()=>{im.onload=()=>{const m=520,s=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',.7))};im.onerror=()=>r(null);im.src=fr.result};fr.onerror=()=>r(null);fr.readAsDataURL(file)})}
 $('f').onsubmit=async e=>{e.preventDefault();
- const img=await shrink($('ph').files[0]);if(AUTH){try{await publishServer(img)}catch(err){alert('No se pudo publicar: '+err.message);return}$('f').reset();$('dlg').close();S.tab='todo';await loadFeed();return}
+ const img=await shrink($('ph').files[0]);if(AUTH){try{if(S.user==='@invitado')await loadProfile();await publishServer(img)}catch(err){alert('No se pudo publicar: '+err.message);return}$('f').reset();$('dlg').close();S.tab='todo';await loadFeed();return}
  S.posts.unshift({id:Date.now(),u:S.user,c:$('cat').value,sp:$('sp').value,kg:$('kg').value,pl:$('pl').value,tx:$('tx').value,img,l:0});
  save();$('f').reset();$('dlg').close();S.tab='todo';render()};
 render();loadLive();loadMonte();initAuth();
