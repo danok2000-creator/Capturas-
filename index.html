@@ -47,7 +47,7 @@ input,select,textarea{width:100%;padding:9px;border:1px solid var(--bd);border-r
 <body>
 <div class="wrap">
 <header><h1>🎣🦌🍄 Capturas</h1><button class="btn ghost" id="me">Mi perfil</button></header>
-<div class="tabs" id="tabs"></div>
+<div class="tabs" id="tabs"></div><div class="tabs" id="vtabs"></div>
 <div id="today"></div>
 <div id="feed"></div>
 </div>
@@ -194,7 +194,7 @@ render()}
 function monteRows(k,sc,W,TP,RN,HM,PR){const r=MLIVE.r,f=(a,d)=>a.map(v=>nv(v,d)),B=r.dir.map(v=>Math.round(v||0));return k==='caza'?[['Temp.','°C',f(r.temp),TP],['Viento','km/h',f(r.wind),W],['Rachas','km/h',f(r.gust),W],['Dir.','',B,null,1],['Lluvia','mm',f(r.rain,1),RN],['Humedad','%',f(r.hum),HM],['Nubes','%',f(r.cloud),PR],['Presión','hPa',f(r.pres),null]]:[['Humedad','%',f(r.hum),HM],['Temp.','°C',f(r.temp),TP],['Suelo','°C',f(r.soil),TP],['Lluvia','mm',f(r.rain,1),RN],['Viento','km/h',f(r.wind),W],['Nubes','%',f(r.cloud),PR]]}
 const dl=t=>['D','L','M','X','J','V','S'][new Date(+t.slice(0,4),+t.slice(5,7)-1,+t.slice(8,10)).getDay()]+t.slice(8,10);
 const SBU='https://knbufaiccmoqzdeynskv.supabase.co',SBK='sb_publishable_VqX8BpDSCXyKYmWWl1atnA_zsUsaAdz';
-let AUTH=null,FEED=[],FEEDOK=false;
+let AUTH=null,FEED=[],FEEDOK=false,FERR='';
 const sbh=(t,x)=>({apikey:SBK,'Content-Type':'application/json',...(t?{Authorization:'Bearer '+t}:{}),...(x||{})});
 async function sbf(path,o={}){const r=await fetch(SBU+path,{...o,headers:sbh(AUTH&&AUTH.access_token,o.headers)});const t=await r.text();if(!r.ok)throw new Error(t||r.status);return t?JSON.parse(t):null}
 async function authCall(path,body){const r=await fetch(SBU+'/auth/v1/'+path,{method:'POST',headers:sbh(null),body:JSON.stringify(body)});const j=await r.json();if(!r.ok)throw new Error(j.msg||j.error_description||j.message||'Error');return j}
@@ -212,10 +212,11 @@ if(!j.access_token)throw new Error('Cuenta creada. Confirma el correo y vuelve a
 saveAuth(j);if(reg)await sbf('/rest/v1/profiles',{method:'POST',body:JSON.stringify({id:j.user.id,username:un})});
 await loadProfile();$('ad').close();await loadFeed()}
 catch(e){let m=e.message;if(/duplicate|23505/.test(m))m='Ese usuario ya existe';else if(/Invalid login/i.test(m))m='Correo o contraseña incorrectos';else if(/already registered/i.test(m))m='Ese correo ya tiene cuenta';$('am').textContent=m}}
+function setView(v){S.view=v;render()}
 function logout(){AUTH=null;S.user='@invitado';try{localStorage.removeItem('sbsess')}catch(e){}$('pd').close();loadFeed()}
 async function loadFeed(){try{const r=await sbf('/rest/v1/captures?select=id,user_id,category,species,weight_text,place,note,image_url,created_at,profiles(username),likes(count)&order=created_at.desc&limit=60');
 let mine=new Set();if(AUTH){const l=await sbf(`/rest/v1/likes?select=capture_id&user_id=eq.${AUTH.user.id}`);mine=new Set((l||[]).map(x=>x.capture_id))}
-FEED=r.map(x=>({id:x.id,uid:x.user_id,u:'@'+(x.profiles?x.profiles.username:'usuario'),c:x.category,sp:x.species,kg:x.weight_text||'',pl:x.place||'',tx:x.note||'',img:x.image_url,l:(x.likes&&x.likes[0]?x.likes[0].count:0),liked:mine.has(x.id),ts:Date.parse(x.created_at)}));FEEDOK=true}catch(e){FEEDOK=false}render()}
+FEED=r.map(x=>({id:x.id,uid:x.user_id,u:'@'+(x.profiles?x.profiles.username:'usuario'),c:x.category,sp:x.species,kg:x.weight_text||'',pl:x.place||'',tx:x.note||'',img:x.image_url,l:(x.likes&&x.likes[0]?x.likes[0].count:0),liked:mine.has(x.id),ts:Date.parse(x.created_at)}));FEEDOK=true;FERR=''}catch(e){FEEDOK=false;FERR=String(e.message||e).slice(0,200)}render()}
 async function publishServer(img){let url=null;
 if(img){const blob=await (await fetch(img)).blob(),path=`${AUTH.user.id}/${Date.now()}.jpg`,r=await fetch(`${SBU}/storage/v1/object/capturas/${path}`,{method:'POST',headers:{apikey:SBK,Authorization:'Bearer '+AUTH.access_token,'Content-Type':'image/jpeg'},body:blob});if(!r.ok)throw new Error('no se pudo subir la foto');url=`${SBU}/storage/v1/object/public/capturas/${path}`}
 await sbf('/rest/v1/captures',{method:'POST',body:JSON.stringify({category:$('cat').value,species:$('sp').value,weight_text:$('kg').value||null,place:$('pl').value||null,note:$('tx').value||null,image_url:url})})}
@@ -250,7 +251,7 @@ const seed=[
 {id:1,u:'@pescador_nort',c:'pesca',sp:'Lubina',kg:'5 kg',pl:'Cantabria',tx:'Al amanecer con rizo. ¡Qué bicho!',l:42},
 {id:2,u:'@monte_alto',c:'caza',sp:'Corzo',kg:'Macho 14 kg',pl:'Sierra de Gredos',tx:'Lance de mañana, buen viento.',l:31},
 {id:3,u:'@micologo_ana',c:'setas',sp:'Boletus edulis',kg:'1,2 kg',pl:'Pinar de Soria',tx:'Cesta llena tras las lluvias.',l:58}];
-let S={tab:'todo',posts:[],user:'@invitado'};
+let S={view:'feed',tab:'todo',posts:[],user:'@invitado'};
 try{const d=JSON.parse(localStorage.getItem('capt')||'null');if(d){S.posts=d.posts||[];S.user=d.user||S.user}}catch(e){}
 const save=()=>{try{localStorage.setItem('capt',JSON.stringify({posts:S.posts,user:S.user}))}catch(e){}};
 const $=i=>document.getElementById(i);
@@ -267,7 +268,9 @@ function render(){
  <div class="ph">${p.img?`<img src="${esc(p.img)}" alt="">`:EMO[p.c]}</div>
  <div class="meta"><button class="like" data-id="${p.id}">${p.liked?'❤️':'🤍'}</button> <small>${p.l} me gusta</small>
  <div><strong>${esc(p.sp)}</strong>${p.kg?' · '+esc(p.kg):''}${p.pl?' · 📍'+esc(p.pl):''}</div>${p.tx?`<div>${esc(p.tx)}</div>`:''}</div></div>`).join('');
+ $('vtabs').innerHTML=[['feed','📷 Capturas'],['tiempo','🌦️ Tiempo y especies']].map(([k,n])=>`<button class="tab ${S.view===k?'on':''}" onclick="setView('${k}')">${n}</button>`).join('');$('today').style.display=S.view==='feed'?'none':'';$('feed').style.display=S.view==='tiempo'?'none':'';
  if(FEEDOK&&!all.length)$('feed').innerHTML='<div class="card meta">Aún no hay capturas aquí. ¡Sube la primera!</div>';
+ if(!FEEDOK&&FERR&&AUTH)$('feed').insertAdjacentHTML('afterbegin','<div class="card meta">No se pudo cargar el feed compartido: '+esc(FERR)+'</div>');
  $('feed').querySelectorAll('.like').forEach(b=>b.onclick=()=>{if(FEEDOK)return toggleLike(b.dataset.id);const p=[...S.posts,...seed].find(x=>x.id==b.dataset.id);p.liked=!p.liked;p.l+=p.liked?1:-1;save();render()});
 }
 $('add').onclick=()=>{if(!AUTH){openAuth();return}if(S.tab!=='todo')$('cat').value=S.tab;$('dlg').showModal()};
@@ -276,7 +279,7 @@ $('me').onclick=()=>{if(!AUTH){openAuth();return}$('un').value=S.user;$('med').i
 $('sv').onclick=()=>{let u=$('un').value.trim()||'@invitado';if(u[0]!=='@')u='@'+u;S.user=u;save();$('pd').close()};
 function shrink(file){return new Promise(r=>{if(!file)return r(null);const im=new Image,fr=new FileReader;fr.onload=()=>{im.onload=()=>{const m=520,s=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',.7))};im.onerror=()=>r(null);im.src=fr.result};fr.onerror=()=>r(null);fr.readAsDataURL(file)})}
 $('f').onsubmit=async e=>{e.preventDefault();
- const img=await shrink($('ph').files[0]);if(AUTH){try{if(S.user==='@invitado')await loadProfile();await publishServer(img)}catch(err){alert('No se pudo publicar: '+err.message);return}$('f').reset();$('dlg').close();S.tab='todo';await loadFeed();return}
+ const img=await shrink($('ph').files[0]);if(AUTH){try{if(S.user==='@invitado')await loadProfile();await publishServer(img)}catch(err){alert('No se pudo publicar: '+err.message);return}$('f').reset();$('dlg').close();S.tab='todo';S.view='feed';await loadFeed();return}
  S.posts.unshift({id:Date.now(),u:S.user,c:$('cat').value,sp:$('sp').value,kg:$('kg').value,pl:$('pl').value,tx:$('tx').value,img,l:0});
  save();$('f').reset();$('dlg').close();S.tab='todo';render()};
 render();loadLive();loadMonte();initAuth();
